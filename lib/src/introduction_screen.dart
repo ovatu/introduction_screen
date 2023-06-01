@@ -279,6 +279,16 @@ class IntroductionScreen extends StatefulWidget {
   /// ```
   final Function canProgress;
 
+  /// A function to pass the current scroll position on scroll.
+  /// Allows for custom background effects, such as parallax.
+  ///
+  /// ```dart
+  /// onScroll: (page, total) {
+  ///     setState(() => _scrollProgress = page / total);
+  /// }
+  /// ```
+  final Function(double, int)? onScroll;
+
   IntroductionScreen(
       {Key? key,
       this.pages,
@@ -337,7 +347,8 @@ class IntroductionScreen extends StatefulWidget {
       this.scrollPhysics = const BouncingScrollPhysics(),
       this.rtl = false,
       this.allowImplicitScrolling = false,
-      this.canProgress = defaultCanProgressFunction,
+        this.canProgress = defaultCanProgressFunction,
+        this.onScroll,
       this.safeAreaList = const [false, false, false, false]})
       : assert(
           pages != null || rawPages != null,
@@ -410,6 +421,7 @@ class IntroductionScreenState extends State<IntroductionScreen> {
     final int initialPage = min(widget.initialPage, getPagesLength() - 1);
     _currentPage = initialPage;
     _pageController = PageController(initialPage: initialPage);
+
     _autoScroll(widget.autoScrollDuration);
     if (widget.hideBottomOnKeyboard) {
       final keyboardVisibilityController = KeyboardVisibilityController();
@@ -496,6 +508,7 @@ class IntroductionScreenState extends State<IntroductionScreen> {
     if (metrics is PageMetrics && metrics.page != null) {
       if (mounted) {
         setState(() => _currentPage = metrics.page!.round());
+        widget.onScroll?.call(_pageController.page ?? 0, getPagesLength() - 1);
       }
     }
     return false;
